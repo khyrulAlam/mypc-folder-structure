@@ -8,20 +8,53 @@
   </head>
   <body>
     <h3>Hello world</h3>
-
+    <button onclick="serverCall('/file')">Home</button>
+    <div id="backBtn"></div>
     <div id="result"></div>
 
     <script>
       var view = document.querySelector("#result");
-      fetch("/file")
-        .then(response => {
-          return response.json();
-        })
-        .then(res => {
-          res.map(arr => {
-            view.innerHTML += `<p> 📁 ${arr}</p>`;
+      var backBtn = document.querySelector("#backBtn");
+      function serverCall(url) {
+        fetch(url)
+          .then(response => {
+            return response.json();
+          })
+          .then(res => {
+            view.innerHTML = "";
+            backBtn.innerHTML = "";
+            // console.log(res);
+            if (res && res.length > 0) {
+              let pathArray = res[0].path.split("/").slice(0, -2);
+              backBtn.innerHTML = `<button onClick="myFunction('${pathArray.join(
+                "/"
+              )}')">Back</button>`;
+
+              res.map(arr => {
+                if (arr.isDirectory) {
+                  view.innerHTML += `<p><button onClick="myFunction('${
+                    arr.path
+                  }')"> 📁 ${arr.fileName}</button></p>`;
+                } else {
+                  view.innerHTML += `<p> 🎃 ${arr.fileName}</p>`;
+                }
+              });
+            } else {
+              view.innerHTML += " 💩💩💩 No File Found 💩💩💩 ";
+            }
+          })
+          .catch(err => {
+            console.log(err);
           });
-        });
+      }
+
+      function myFunction(dir) {
+        event.preventDefault();
+        console.log(dir);
+        let url = "/sub?dir=" + dir;
+        serverCall(url);
+      }
+      serverCall("/file");
     </script>
   </body>
 </html>
